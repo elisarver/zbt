@@ -22,10 +22,8 @@ func NewTicker(duration time.Duration) *Ticker {
 	go func() {
 		zbt.C <- time.Now()
 		for zbt.alive = true; zbt.alive; {
-			select {
-			case now := <-zbt.it.C:
-				zbt.C <- now
-			}
+			now := <-zbt.it.C
+			zbt.C <- now
 		}
 	}()
 	return zbt
