@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestNewTicker_InitialTick(t *testing.T) {
+func Test_InitialTick(t *testing.T) {
 	ticker := NewTicker(1 * time.Second)
 	time.Sleep(500 * time.Millisecond)
 	select {
@@ -16,7 +16,7 @@ func TestNewTicker_InitialTick(t *testing.T) {
 	}
 }
 
-func TestNewTicker_ReTick(t *testing.T) {
+func Test_ReTick(t *testing.T) {
 	ticker := NewTicker(250 * time.Millisecond)
 	time.Sleep(50 * time.Millisecond)
 	count := 0
@@ -35,24 +35,14 @@ func TestNewTicker_ReTick(t *testing.T) {
 	}
 }
 
-func TestNewTicker_StopBeforeRetick(t *testing.T) {
-	ticker := NewTicker(250 * time.Millisecond)
-	time.Sleep(50 * time.Millisecond)
-	count := 0
-	cutoff := time.After(500 * time.Millisecond)
-	for alive := true; alive; {
-		select {
-		case <-ticker.C:
-			ticker.Stop()
-			count++
-			if count > 1 {
-				t.Fatalf("reached count of 2, stop unsuccessful")
-				return
-			}
-		case <-cutoff:
-			alive = false
-			t.Log("reached cutoff without multiple ticks, PASS")
-		}
-	}
+func Test_Stop(t *testing.T) {
+	ticker := NewTicker(time.Millisecond)
 	ticker.Stop()
+	safety := time.After(50 * time.Millisecond)
+	select {
+	case <-ticker.ctx.Done():
+		t.Log("PASS received done; internal function stopped")
+	case <-safety:
+		t.Fatal("didn't get Done() closed after 50ms")
+	}
 }
